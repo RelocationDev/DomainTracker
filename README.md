@@ -1,6 +1,6 @@
-## **A free opensource domain tracker with a breakdown of which countries players connected with for each domain**
+## **A free opensource domain tracker with a breakdown of which countries players connected with for each domain versions 1.13+**
 
-> **Command usage: /domaintracker <MM/dd/yyyy>**
+> **Command usage: /domaintracker <MM/dd/yyyy>** **permission: domaintracker.admin**
 
 # Examples
 ![Image](https://i.imgur.com/wzs4MxS.png)
@@ -25,6 +25,9 @@ database:
   update:
     enabled: true
     every-x-days: 30
+    
+# Turning this setting to true will make it only count the join if they have never joined the server before
+only-count-unique: false
 
 # Fill in your domains you wish to track joins for below
 domains:
