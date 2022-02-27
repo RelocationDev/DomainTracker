@@ -1,6 +1,5 @@
 package me.rickylafleur.domaintracker.listeners;
 
-import lombok.RequiredArgsConstructor;
 import me.lucko.helper.Events;
 import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.module.TerminableModule;
@@ -15,7 +14,7 @@ import java.util.List;
 /**
  * @author Ricky Lafleur
  */
-public class JoinListener implements TerminableModule {
+public final class JoinListener implements TerminableModule {
 
     private final DomainTracker plugin;
     private final List<String> domains;
@@ -37,16 +36,16 @@ public class JoinListener implements TerminableModule {
                         return;
                     }
 
-                    if (this.plugin.getDatabase().playerExists(player.getUniqueId())) {
+                    if (this.plugin.getJoinDatabase().playerExists(player.getUniqueId())) {
                         return;
                     }
 
                     if (this.domains.contains(hostname)) {
-                        this.plugin.getDatabase().addData(
+                        this.plugin.getJoinDatabase().addData(
                                 this.plugin.getFormat().format(new Date()),
                                 player.getUniqueId().toString(),
                                 hostname,
-                                this.plugin.getDatabase().getCountryFromIp(event.getAddress()));
+                                this.plugin.getJoinDatabase().getCountryFromIp(event.getAddress()));
                     }
                 })
                 .bindWith(consumer);

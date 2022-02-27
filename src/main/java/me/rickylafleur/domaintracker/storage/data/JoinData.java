@@ -1,4 +1,4 @@
-package me.rickylafleur.domaintracker.storage.objects;
+package me.rickylafleur.domaintracker.storage.data;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,9 +13,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public final class JoinData {
 
-    private final String date;
     private final UUID uuid;
-    private final String domain;
-    private final String country;
+    private final String date, domain, country;
 
 }

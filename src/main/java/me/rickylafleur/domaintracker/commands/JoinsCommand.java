@@ -5,7 +5,7 @@ import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.module.TerminableModule;
 import me.rayzr522.jsonmessage.JSONMessage;
 import me.rickylafleur.domaintracker.DomainTracker;
-import me.rickylafleur.domaintracker.storage.objects.JoinData;
+import me.rickylafleur.domaintracker.storage.data.JoinData;
 import me.rickylafleur.domaintracker.utils.Text;
 import org.bukkit.entity.Player;
 
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * @author Ricky Lafleur
  */
-public class JoinsCommand implements TerminableModule {
+public final class JoinsCommand implements TerminableModule {
 
     private final DomainTracker plugin;
     private final List<String> displays, countries, domains;
@@ -46,9 +46,9 @@ public class JoinsCommand implements TerminableModule {
                     final Set<JoinData> joinDataSet;
 
                     if (date.equalsIgnoreCase("all")) {
-                        joinDataSet = this.plugin.getDatabase().getJoinData();
+                        joinDataSet = this.plugin.getJoinDatabase().getJoinData();
                     } else {
-                        joinDataSet = this.plugin.getDatabase().getJoinData(date);
+                        joinDataSet = this.plugin.getJoinDatabase().getJoinData(date);
                     }
 
                     if (joinDataSet.isEmpty()) {

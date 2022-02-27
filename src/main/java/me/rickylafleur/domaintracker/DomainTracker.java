@@ -7,7 +7,7 @@ import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.plugin.ap.Plugin;
 import me.rickylafleur.domaintracker.commands.JoinsCommand;
 import me.rickylafleur.domaintracker.listeners.JoinListener;
-import me.rickylafleur.domaintracker.storage.Database;
+import me.rickylafleur.domaintracker.storage.impl.JoinDatabase;
 import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
@@ -33,7 +33,7 @@ public final class DomainTracker extends ExtendedJavaPlugin {
     private static DomainTracker instance;
 
     private final FastDateFormat format = FastDateFormat.getInstance("MM-dd-yyyy");
-    private final Database database = new Database(this);
+    private final JoinDatabase joinDatabase = new JoinDatabase(this);
     private final File databaseFile = new File(this.getDataFolder(), "GeoIP2-Country.mmdb");
     private DatabaseReader maxMindReader;
 
@@ -44,7 +44,7 @@ public final class DomainTracker extends ExtendedJavaPlugin {
         this.saveDefaultConfig();
 
         try {
-            this.database.connect();
+            this.joinDatabase.connect();
         } catch (final SQLException exception) {
             exception.printStackTrace();
             getServer().getPluginManager().disablePlugin(this);
@@ -62,7 +62,7 @@ public final class DomainTracker extends ExtendedJavaPlugin {
 
     @Override
     protected void disable() {
-        this.database.disconnect();
+        this.joinDatabase.disconnect();
     }
 
     private void checkDatabase() {

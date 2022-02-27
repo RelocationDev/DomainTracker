@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 /**
  * @author Ricky Lafleur
  */
-public class Text {
+public final class Text {
 
     private final static Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
 

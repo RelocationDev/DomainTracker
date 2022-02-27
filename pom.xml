@@ -17,6 +17,7 @@
     </properties>
 
     <build>
+        <finalName>DomainTracker</finalName>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
