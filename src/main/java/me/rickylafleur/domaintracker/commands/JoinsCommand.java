@@ -1,6 +1,5 @@
 package me.rickylafleur.domaintracker.commands;
 
-import lombok.RequiredArgsConstructor;
 import me.lucko.helper.Commands;
 import me.lucko.helper.terminable.TerminableConsumer;
 import me.lucko.helper.terminable.module.TerminableModule;
@@ -17,28 +16,39 @@ import java.util.stream.Collectors;
 /**
  * @author Ricky Lafleur
  */
-@RequiredArgsConstructor
 public class JoinsCommand implements TerminableModule {
 
     private final DomainTracker plugin;
+    private final List<String> displays, countries, domains;
+
+    public JoinsCommand(final DomainTracker plugin) {
+        this.plugin = plugin;
+        this.displays = plugin.getConfig().getStringList("display");
+        this.countries = plugin.getConfig().getStringList("countries");
+        this.domains = plugin.getConfig().getStringList("domains");
+    }
 
     @Override
-    public void setup(@Nonnull TerminableConsumer consumer) {
+    public void setup(@Nonnull final TerminableConsumer consumer) {
         Commands.create()
                 .assertPlayer()
                 .assertPermission("domaintracker.admin")
                 .assertUsage("<MM-dd-yyyy>")
-                .handler(c -> {
-                    Player player = c.sender();
-                    String date = c.arg(0).parseOrFail(String.class);
+                .handler(command -> {
 
-                    if (date.equalsIgnoreCase("today")) date = plugin.getFormat().format(new Date());
+                    final Player player = command.sender();
+                    String date = command.arg(0).parseOrFail(String.class);
 
-                    Set<JoinData> joinDataSet;
+                    if (date.equalsIgnoreCase("today")) {
+                        date = this.plugin.getFormat().format(new Date());
+                    }
+
+                    final Set<JoinData> joinDataSet;
+
                     if (date.equalsIgnoreCase("all")) {
-                        joinDataSet = plugin.getDatabase().getJoinData();
+                        joinDataSet = this.plugin.getDatabase().getJoinData();
                     } else {
-                        joinDataSet = plugin.getDatabase().getJoinData(date);
+                        joinDataSet = this.plugin.getDatabase().getJoinData(date);
                     }
 
                     if (joinDataSet.isEmpty()) {
@@ -47,26 +57,41 @@ public class JoinsCommand implements TerminableModule {
                     }
 
                     int i = 0;
-                    for (String domain : plugin.getConfig().getStringList("domains")) {
-                        List<JoinData> joins = joinDataSet.stream().filter(joinData -> joinData.getDomain().equals(domain)).sorted(Comparator.comparing(JoinData::getCountry)).collect(Collectors.toList());
-                        List<String> countries = joins.stream().map(JoinData::getCountry).collect(Collectors.toList());
+                    for (final String domain : this.domains) {
 
-                        Map<String, Integer> countryJoins = new HashMap<>();
-                        plugin.getConfig().getStringList("countries").forEach(country -> {
+                        final List<JoinData> joins = joinDataSet
+                                .stream()
+                                .filter(joinData -> joinData.getDomain().equals(domain))
+                                .sorted(Comparator.comparing(JoinData::getCountry))
+                                .collect(Collectors.toList());
+
+                        final List<String> countries = joins
+                                .stream()
+                                .map(JoinData::getCountry)
+                                .collect(Collectors.toList());
+
+                        final Map<String, Integer> countryJoins = new HashMap<>();
+
+                        for (final String country : this.countries) {
                             int frequency = Collections.frequency(countries, country);
 
-                            if (frequency <= 0) return;
+                            if (frequency <= 0) {
+                                return;
+                            }
 
                             countryJoins.put(country, frequency);
-                        });
+                        }
 
-                        JSONMessage display = JSONMessage.create(Text.colorize("&a" + plugin.getConfig().getStringList("display").get(i) + " &8- &7" + joins.size() + " joins"))
-                                .tooltip(countryJoins.entrySet().stream().map(join -> Text.colorize("&a&l" + join.getKey() + " &8- &7" + join.getValue() + " joins")).collect(Collectors.joining("\n")));
+                        final JSONMessage display = JSONMessage
+                                .create(Text.colorize("&a" + this.displays.get(i) + " &8- &7" + joins.size() + " joins"))
+                                .tooltip(countryJoins.entrySet()
+                                        .stream()
+                                        .map(join -> Text.colorize("&a&l" + join.getKey() + " &8- &7" + join.getValue() + " joins"))
+                                        .collect(Collectors.joining("\n")));
 
                         display.send(player);
                         i++;
                     }
-                })
-                .register("domaintracker", "joins");
+                }).register("domaintracker", "joins");
     }
 }

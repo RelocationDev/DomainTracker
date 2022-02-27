@@ -10,7 +10,6 @@ import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -25,7 +24,6 @@ import java.util.logging.Level;
 public class Database {
 
     private final DomainTracker plugin;
-
     private HelperSql helperSql;
 
     public Database(DomainTracker plugin) {
@@ -33,15 +31,14 @@ public class Database {
     }
 
     public void connect() throws SQLException {
-        helperSql = new HelperSql(DatabaseCredentials.fromConfig(plugin.getConfig().getConfigurationSection("mysql")));
-
-        createTable();
+        this.helperSql = new HelperSql(DatabaseCredentials.fromConfig(plugin.getConfig().getConfigurationSection("mysql")));
+        this.createTable();
     }
 
     public void disconnect() {
-        if (isConnected()) {
+        if (this.isConnected()) {
             try {
-                helperSql.getConnection().close();
+                this.helperSql.getConnection().close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -50,7 +47,7 @@ public class Database {
 
     public boolean isConnected() {
         try {
-            helperSql.getConnection();
+            this.helperSql.getConnection();
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -59,20 +56,17 @@ public class Database {
         return false;
     }
 
-    public Connection getConnection() {
-        try {
-            return helperSql.getConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public void addData(
+            final String date,
+            final String uuid,
+            final String domain,
+            final String country) {
+        
+        if (this.playerExists(UUID.fromString(uuid))) {
+            return;
         }
 
-        return null;
-    }
-
-    public void addData(String date, String uuid, String domain, String country) {
-        if (playerExists(UUID.fromString(uuid))) return;
-
-        helperSql.executeAsync("INSERT INTO domain_tracker (DATE,UUID,DOMAIN,COUNTRY) VALUES (?,?,?,?);", ps -> {
+        this.helperSql.executeAsync("INSERT INTO domain_tracker (DATE,UUID,DOMAIN,COUNTRY) VALUES (?,?,?,?);", ps -> {
             ps.setString(1, date);
             ps.setString(2, uuid);
             ps.setString(3, domain);
@@ -81,8 +75,8 @@ public class Database {
     }
 
     public Set<JoinData> getJoinData() {
-        return helperSql.queryAsync("SELECT * FROM domain_tracker;", rs -> {
-            Set<JoinData> joinDataSet = new HashSet<>();
+        return this.helperSql.queryAsync("SELECT * FROM domain_tracker;", rs -> {
+            final Set<JoinData> joinDataSet = new HashSet<>();
 
             while (rs.next()) {
                 joinDataSet.add(new JoinData(
@@ -97,9 +91,9 @@ public class Database {
         }).join().orElse(Collections.emptySet());
     }
 
-    public Set<JoinData> getJoinData(String date) {
-        return helperSql.queryAsync("SELECT * FROM domain_tracker WHERE DATE = ?;", ps -> ps.setString(1, date), rs -> {
-            Set<JoinData> joinDataSet = new HashSet<>();
+    public Set<JoinData> getJoinData(final String date) {
+        return this.helperSql.queryAsync("SELECT * FROM domain_tracker WHERE DATE = ?;", ps -> ps.setString(1, date), rs -> {
+            final Set<JoinData> joinDataSet = new HashSet<>();
 
             while (rs.next()) {
                 joinDataSet.add(new JoinData(
@@ -113,16 +107,16 @@ public class Database {
         }).join().orElse(Collections.emptySet());
     }
 
-    public boolean playerExists(UUID uuid) {
-        return helperSql.queryAsync("SELECT * FROM domain_tracker WHERE `UUID` = ?;", ps -> ps.setString(1, uuid.toString()), ResultSet::next).join().orElse(false);
+    public boolean playerExists(final UUID uuid) {
+        return this.helperSql.queryAsync("SELECT * FROM domain_tracker WHERE `UUID` = ?;", ps
+                -> ps.setString(1, uuid.toString()), ResultSet::next).join().orElse(false);
     }
 
-    public String getCountryFromIp(InetAddress address) {
+    public String getCountryFromIp(final InetAddress address) {
         try {
-            CountryResponse response = plugin.getMaxMindReader().country(address);
-
+            final CountryResponse response = this.plugin.getMaxMindReader().country(address);
             return response.getCountry().getName();
-        } catch (IOException | GeoIp2Exception e) {
+        } catch (final IOException | GeoIp2Exception e) {
             Bukkit.getLogger().log(Level.INFO, "IP not found in database defaulting to Unknown");
         }
 
@@ -130,6 +124,6 @@ public class Database {
     }
 
     private void createTable() {
-        helperSql.executeAsync("CREATE TABLE IF NOT EXISTS `domain_tracker` (`DATE` char(10), `UUID` char(36), `DOMAIN` char(50), `COUNTRY` char(50));");
+        this.helperSql.executeAsync("CREATE TABLE IF NOT EXISTS `domain_tracker` (`DATE` char(10), `UUID` char(36), `DOMAIN` char(50), `COUNTRY` char(50));");
     }
 }

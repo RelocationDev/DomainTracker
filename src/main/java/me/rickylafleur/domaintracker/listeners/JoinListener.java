@@ -10,32 +10,39 @@ import org.bukkit.event.player.PlayerLoginEvent;
 
 import javax.annotation.Nonnull;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Ricky Lafleur
  */
-@RequiredArgsConstructor
 public class JoinListener implements TerminableModule {
 
     private final DomainTracker plugin;
+    private final List<String> domains;
+
+    public JoinListener(final DomainTracker plugin) {
+        this.plugin = plugin;
+        this.domains = plugin.getConfig().getStringList("domains");
+    }
 
     @Override
-    public void setup(@Nonnull TerminableConsumer consumer) {
+    public void setup(@Nonnull final TerminableConsumer consumer) {
         Events.subscribe(PlayerLoginEvent.class)
-                .filter(e -> e.getResult() == PlayerLoginEvent.Result.ALLOWED)
-                .handler(e -> {
-                    Player player = e.getPlayer();
-                    String hostname = e.getHostname();
+                .filter(event -> event.getResult() == PlayerLoginEvent.Result.ALLOWED)
+                .handler(event -> {
+                    final Player player = event.getPlayer();
+                    final String hostname = event.getHostname();
 
-                    if (plugin.getDatabase().playerExists(player.getUniqueId())) return;
+                    if (this.plugin.getDatabase().playerExists(player.getUniqueId())) {
+                        return;
+                    }
 
-                    if (plugin.getConfig().getStringList("domains").contains(hostname)) {
-                        plugin.getDatabase().addData(
-                                plugin.getFormat().format(new Date()),
+                    if (this.domains.contains(hostname)) {
+                        this.plugin.getDatabase().addData(
+                                this.plugin.getFormat().format(new Date()),
                                 player.getUniqueId().toString(),
                                 hostname,
-                                plugin.getDatabase().getCountryFromIp(e.getAddress())
-                        );
+                                this.plugin.getDatabase().getCountryFromIp(event.getAddress()));
                     }
                 })
                 .bindWith(consumer);
