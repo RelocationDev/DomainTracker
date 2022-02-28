@@ -124,28 +124,26 @@ public final class DomainTracker extends ExtendedJavaPlugin {
             connection.setConnectTimeout(10000);
             connection.connect();
 
-            InputStream input = connection.getInputStream();
+            InputStream input = url.contains("gz")
+                    ? new GZIPInputStream(connection.getInputStream())
+                    : connection.getInputStream();
 
             final OutputStream output = new FileOutputStream(this.databaseFile);
             final byte[] buffer = new byte[2048];
 
-            if (url.contains("gz")) {
-                input = new GZIPInputStream(input);
+            if (url.contains("tar.gz")) {
 
-                if (url.contains("tar.gz")) {
+                final TarInputStream tarInputStream = new TarInputStream(input);
+                TarEntry entry;
 
-                    final TarInputStream tarInputStream = new TarInputStream(input);
-                    TarEntry entry;
+                while ((entry = tarInputStream.getNextEntry()) != null) {
+                    if (entry.isDirectory()) {
+                        continue;
+                    }
 
-                    while ((entry = tarInputStream.getNextEntry()) != null) {
-                        if (entry.isDirectory()) {
-                            continue;
-                        }
-
-                        if (entry.getName().substring(entry.getName().length() - 5).equalsIgnoreCase(".mmdb")) {
-                            input = tarInputStream;
-                            break;
-                        }
+                    if (entry.getName().substring(entry.getName().length() - 5).equalsIgnoreCase(".mmdb")) {
+                        input = tarInputStream;
+                        break;
                     }
                 }
             }
